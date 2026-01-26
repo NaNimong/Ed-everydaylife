@@ -1,14 +1,460 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Dinner Menu Recommender : Action</title>
+    <style>
+        :root {
+            --primary-color: #ff6b6b;
+            --secondary-color: #4ecdc4;
+            --bg-color: #f0f2f5;
+            --text-color: #2d3436;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 600px;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 { margin-bottom: 10px; font-size: 2rem; color: #333; }
+        .emoji-header { font-size: 3.5rem; margin-bottom: 15px; display: block; }
+        p.subtitle { color: #636e72; margin-bottom: 40px; line-height: 1.6; }
+
+        /* Buttons */
+        .btn {
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #ff8787);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6); }
+
+        .btn-lang {
+            background: white;
+            border: 2px solid #eee;
+            color: #333;
+            width: 100%;
+            max-width: 250px;
+            display: block;
+            margin: 15px auto;
+        }
+        .btn-lang:hover { border-color: var(--secondary-color); color: var(--secondary-color); }
+
+        /* Question Section */
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .progress-bar { width: 100%; height: 6px; background-color: #eee; border-radius: 10px; margin-bottom: 30px; overflow: hidden; }
+        .progress-fill { height: 100%; background-color: var(--secondary-color); width: 0%; transition: width 0.3s ease; }
+
+        .question-text { font-size: 1.3rem; font-weight: 700; margin-bottom: 40px; min-height: 60px; display: flex; align-items: center; justify-content: center; word-break: keep-all;}
+        .options-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
+        .options-wrapper::before { content: ''; position: absolute; top: 50%; left: 10px; right: 10px; height: 2px; background: #e0e0e0; z-index: 0; transform: translateY(-50%); }
+        .option-btn { width: 55px; height: 55px; border-radius: 50%; border: 3px solid #fff; background: #f1f3f5; color: #868e96; font-weight: bold; font-size: 1.2rem; cursor: pointer; z-index: 1; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .option-btn:hover { background-color: var(--secondary-color); color: white; transform: scale(1.1); }
+        .labels { display: flex; justify-content: space-between; font-size: 0.9rem; color: #adb5bd; font-weight: 500; margin-bottom: 20px; }
+
+        /* Result Section & Card */
+        .food-card { 
+            display: flex; background: #fff; border-radius: 16px; margin-bottom: 20px; overflow: hidden; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.03); text-align: left; 
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative;
+        }
+        .food-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4); border: 1px solid var(--secondary-color); }
+        /* Add a "Click me" indicator */
+        .food-card::after {
+            content: '👆';
+            position: absolute; top: 10px; right: 10px; opacity: 0; transition: opacity 0.3s;
+        }
+        .food-card:hover::after { opacity: 1; }
+
+        .food-img { width: 110px; height: 110px; min-height: 100%; object-fit: cover; background-color: #eee; }
+        .food-info { padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .cuisine-tag { font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; margin-right: 8px; font-weight: bold; color: white; display: inline-block; vertical-align: middle; }
+        
+        .tag-kr { background-color: #ff6b6b; } 
+        .tag-cn { background-color: #d63031; } 
+        .tag-jp { background-color: #fdcb6e; color: #333; } 
+        .tag-asia { background-color: #00b894; } 
+        .tag-us { background-color: #0984e3; } 
+        .tag-mx { background-color: #e17055; } 
+
+        .food-name { font-size: 1.2rem; font-weight: 800; color: #2d3436; vertical-align: middle; }
+        .food-reason { font-size: 0.85rem; color: var(--secondary-color); font-weight: 600; margin: 4px 0; }
+        .food-desc { font-size: 0.8rem; color: #636e72; line-height: 1.3; }
+
+        .retry-btn { background-color: #2d3436; color: white; border: none; padding: 14px 30px; border-radius: 50px; cursor: pointer; margin-top: 20px; font-weight: bold; }
+
+        /* Modal (Popup) Styles */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); z-index: 100; backdrop-filter: blur(5px);
+            align-items: center; justify-content: center; animation: fadeIn 0.3s;
+        }
+        .modal-box {
+            background: white; width: 90%; max-width: 400px; padding: 30px; border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; position: relative;
+        }
+        .modal-close {
+            position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #aaa;
+        }
+        .modal-close:hover { color: #333; }
+        .modal-title { margin-bottom: 20px; color: var(--text-color); }
+        .modal-btn {
+            display: block; width: 100%; padding: 15px; margin-bottom: 10px; border: none; border-radius: 12px;
+            font-size: 1rem; font-weight: bold; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-recipe { background-color: #ff0000; color: white; } /* YouTube Red */
+        .btn-recipe:hover { background-color: #cc0000; }
+        .btn-map { background-color: #4285F4; color: white; } /* Google Blue */
+        .btn-map:hover { background-color: #3367D6; }
+
+    </style>
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+
+<div class="container">
+    
+    <div id="langScreen" class="section active">
+        <span class="emoji-header">🌐</span>
+        <h1>Select Language</h1>
+        <p class="subtitle">Please choose your preferred language.<br>언어를 선택해 주세요.</p>
+        <button class="btn btn-lang" onclick="setLanguage('ko')">🇰🇷 한국어 (Korean)</button>
+        <button class="btn btn-lang" onclick="setLanguage('en')">🇺🇸 English</button>
+    </div>
+
+    <div id="startScreen" class="section">
+        <span class="emoji-header">🍽️</span>
+        <h1 id="startTitle"></h1>
+        <p class="subtitle" id="startDesc"></p>
+        <button class="btn btn-primary" onclick="startSurvey()" id="startBtn"></button>
+    </div>
+
+    <div id="questionScreen" class="section">
+        <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
+        <div style="color:var(--secondary-color); font-weight:bold; font-size:0.9rem; margin-bottom:10px;">Q<span id="currentQNum">1</span>.</div>
+        <div class="question-text" id="questionText"></div>
+        
+        <div class="options-wrapper">
+            <button class="option-btn" onclick="selectOption(1)">1</button>
+            <button class="option-btn" onclick="selectOption(2)">2</button>
+            <button class="option-btn" onclick="selectOption(3)">3</button>
+            <button class="option-btn" onclick="selectOption(4)">4</button>
+            <button class="option-btn" onclick="selectOption(5)">5</button>
+        </div>
+        
+        <div class="labels">
+            <span id="labelLow"></span>
+            <span id="labelHigh"></span>
+        </div>
+    </div>
+
+    <div id="resultScreen" class="section">
+        <h2 id="resultTitle" style="margin-bottom: 25px;"></h2>
+        <p id="clickHint" style="color:#888; font-size:0.9rem; margin-bottom:20px;"></p>
+        <div id="resultList"></div>
+        <div style="text-align: center;">
+            <button class="retry-btn" onclick="location.reload()" id="retryBtn"></button>
+        </div>
+    </div>
+</div>
+
+<div id="actionModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <h2 class="modal-title" id="modalFoodName">Food Name</h2>
+        <p id="modalDesc" style="color:#666; margin-bottom:20px; font-size:0.9rem;"></p>
+        
+        <button class="modal-btn btn-recipe" onclick="goRecipe()">
+            ▶️ <span id="btnRecipeText">YouTube Recipe</span>
+        </button>
+        <button class="modal-btn btn-map" onclick="goMap()">
+            📍 <span id="btnMapText">Find Restaurant</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    // --- Data & Configuration ---
+    let currentLang = 'ko'; 
+    let currentQuestionIndex = 0;
+    let userAnswers = [];
+    let selectedFoodItem = null; // Store clicked food data
+
+    // UI Text Resources
+    const uiText = {
+        startTitle: { ko: "오늘 뭐 먹지?", en: "What's for Dinner?" },
+        startDesc: { ko: "120가지 메뉴 중 당신의 입맛에 딱 맞는<br>최고의 저녁 메뉴를 추천해 드립니다.", en: "Discover your perfect dinner match<br>from over 120 global menu options." },
+        startBtn: { ko: "추천 받기 시작", en: "Start Recommendation" },
+        resultTitle: { ko: "오늘의 추천 메뉴 TOP 5", en: "Top 5 Recommendations" },
+        clickHint: { ko: "음식을 클릭하면 레시피나 식당을 찾을 수 있어요! 👇", en: "Click a card to find a recipe or restaurant! 👇" },
+        retryBtn: { ko: "다시 시작하기", en: "Try Again" },
+        btnRecipe: { ko: "레시피 보기 (YouTube)", en: "Watch Recipe (YouTube)" },
+        btnMap: { ko: "주변 식당 찾기 (Google Maps)", en: "Find Restaurant (Google Maps)" },
+        labels: {
+            low: { ko: "그렇지 않다", en: "No / Low" },
+            high: { ko: "매우 그렇다", en: "Yes / High" }
+        }
+    };
+
+    const categories = {
+        'kr': { ko: "한식", en: "Korean", class: "tag-kr" },
+        'cn': { ko: "중식", en: "Chinese", class: "tag-cn" },
+        'jp': { ko: "일식", en: "Japanese", class: "tag-jp" },
+        'asia': { ko: "아시안", en: "Asian", class: "tag-asia" },
+        'mx': { ko: "멕시칸", en: "Mexican", class: "tag-mx" },
+        'us': { ko: "양식", en: "Western", class: "tag-us" }
+    };
+
+    // Questions
+    const questions = [
+        { q: { ko: "오늘 날씨가 춥거나 비가 오나요?", en: "Is the weather cold or rainy today?" }, low: { ko: "맑음/더움", en: "Hot/Sunny" }, high: { ko: "추움/비", en: "Cold/Rainy" } },
+        { q: { ko: "스트레스를 받아 자극적인 맛이 당기나요?", en: "Do you crave spicy/strong food due to stress?" }, low: { ko: "편안함", en: "Comfort" }, high: { ko: "자극적", en: "Spicy/Strong" } },
+        { q: { ko: "지금 얼마나 배가 고프신가요?", en: "How hungry are you right now?" }, low: { ko: "약간", en: "Snack" }, high: { ko: "매우", en: "Feast" } },
+        { q: { ko: "매운 음식을 잘 드시나요?", en: "Do you enjoy spicy food?" }, low: { ko: "못 먹음", en: "Mild" }, high: { ko: "매니아", en: "Hot" } },
+        { q: { ko: "국물 요리를 선호하시나요?", en: "Do you want a dish with soup?" }, low: { ko: "건조한 요리", en: "Dry" }, high: { ko: "국물 요리", en: "Soup" } },
+        { q: { ko: "기름지거나 튀긴 음식이 당기나요?", en: "Do you crave greasy or fried food?" }, low: { ko: "담백/상큼", en: "Light/Fresh" }, high: { ko: "기름짐", en: "Greasy/Fried" } },
+        { q: { ko: "누구와 함께 드시나요?", en: "Are you eating alone or with a group?" }, low: { ko: "혼밥", en: "Alone" }, high: { ko: "여럿이", en: "Group" } },
+        { q: { ko: "면/빵 vs 밥", en: "Noodles/Bread vs Rice" }, low: { ko: "면/빵", en: "Noodles/Bread" }, high: { ko: "밥", en: "Rice" } },
+        { q: { ko: "이국적인 향신료(고수 등)를 좋아하시나요?", en: "Do you like exotic spices (Cilantro, etc)?" }, low: { ko: "익숙한 맛", en: "Familiar" }, high: { ko: "이국적", en: "Exotic" } },
+        { q: { ko: "음식의 온도는?", en: "Preferred food temperature?" }, low: { ko: "시원함", en: "Cold" }, high: { ko: "뜨거움", en: "Hot" } }
+    ];
+
+    // Food Data
+    const foodData = [
+        { n: {ko:"김치찌개", en:"Kimchi Stew"}, c:"kr", t:[5,4,4,4,5,3,2,5,1,5], d:{ko:"얼큰한 국물과 김치의 조화", en:"Spicy soup with kimchi and pork."} },
+        { n: {ko:"삼겹살", en:"Samgyeopsal"}, c:"kr", t:[3,4,5,2,1,5,5,4,1,5], d:{ko:"한국인의 소울푸드, 구운 돼지고기", en:"Grilled pork belly, Korean BBQ style."} },
+        { n: {ko:"비빔밥", en:"Bibimbap"}, c:"kr", t:[2,2,4,3,2,2,2,5,1,3], d:{ko:"건강한 채소와 고추장의 조화", en:"Mixed rice with vegetables and chili paste."} },
+        { n: {ko:"떡볶이", en:"Tteokbokki"}, c:"kr", t:[3,4,3,4,3,2,2,1,1,5], d:{ko:"매콤달콤한 국민 간식", en:"Spicy and sweet stir-fried rice cakes."} },
+        { n: {ko:"삼계탕", en:"Ginseng Chicken Soup"}, c:"kr", t:[5,1,5,1,5,2,3,5,1,5], d:{ko:"기력 회복에 좋은 보양식", en:"Nutritious soup with a whole chicken and ginseng."} },
+        { n: {ko:"치킨", en:"Fried Chicken"}, c:"kr", t:[3,5,4,2,1,5,5,1,1,5], d:{ko:"바삭한 튀김옷과 부드러운 속살", en:"Crispy Korean style fried chicken."} },
+        { n: {ko:"냉면", en:"Cold Noodles"}, c:"kr", t:[1,1,3,2,4,1,2,1,1,1], d:{ko:"살얼음 동동 시원한 육수", en:"Noodles in icy cold broth."} },
+        { n: {ko:"불고기", en:"Bulgogi"}, c:"kr", t:[3,1,4,1,2,3,4,5,1,5], d:{ko:"달콤한 간장 양념 소고기", en:"Marinated slices of beef grilled on a barbecue."} },
+        { n: {ko:"순대국밥", en:"Sundae Gukbap"}, c:"kr", t:[5,3,5,2,5,3,1,5,1,5], d:{ko:"속이 든든해지는 뜨거운 국밥", en:"Hot soup with Korean blood sausage."} },
+        
+        { n: {ko:"짜장면", en:"Jajangmyeon"}, c:"cn", t:[3,2,4,1,2,4,2,1,2,4], d:{ko:"달콤 짭짤한 춘장 소스 면요리", en:"Noodles with black bean sauce."} },
+        { n: {ko:"짬뽕", en:"Jjamppong"}, c:"cn", t:[5,4,4,5,5,4,2,1,2,5], d:{ko:"해산물이 들어간 얼큰한 국물", en:"Spicy noodle soup with seafood."} },
+        { n: {ko:"마라탕", en:"Malatang"}, c:"cn", t:[4,5,4,5,5,5,3,1,4,5], d:{ko:"얼얼하고 중독성 있는 매운맛", en:"Spicy numbing hot pot soup."} },
+        { n: {ko:"탕수육", en:"Sweet and Sour Pork"}, c:"cn", t:[3,2,4,1,1,5,5,2,2,4], d:{ko:"바삭하게 튀긴 고기에 새콤달콤 소스", en:"Deep fried pork with sweet and sour sauce."} },
+        { n: {ko:"훠궈", en:"Hot Pot"}, c:"cn", t:[5,4,5,4,5,4,5,1,4,5], d:{ko:"다양한 재료를 육수에 익혀먹는 요리", en:"Chinese simmering pot dish."} },
+        { n: {ko:"양꼬치", en:"Lamb Skewers"}, c:"cn", t:[3,3,3,2,1,4,5,2,4,5], d:{ko:"숯불에 구운 향신료 입힌 양고기", en:"Grilled lamb skewers with cumin."} },
+
+        { n: {ko:"초밥", en:"Sushi"}, c:"jp", t:[2,1,3,2,1,1,2,5,3,2], d:{ko:"신선한 재료를 얹은 한입 요리", en:"Fresh raw fish over vinegared rice."} },
+        { n: {ko:"돈카츠", en:"Tonkatsu"}, c:"jp", t:[3,2,4,1,1,5,2,3,2,5], d:{ko:"두툼하고 바삭한 일본식 돼지 튀김", en:"Breaded, deep-fried pork cutlet."} },
+        { n: {ko:"라멘", en:"Ramen"}, c:"jp", t:[5,2,4,2,5,4,2,1,3,5], d:{ko:"진한 육수와 쫄깃한 생면", en:"Japanese noodle soup."} },
+        { n: {ko:"우동", en:"Udon"}, c:"jp", t:[5,1,3,1,5,1,2,1,2,5], d:{ko:"오동통한 면발과 담백한 국물", en:"Thick wheat flour noodle soup."} },
+        { n: {ko:"메밀소바", en:"Soba Noodles"}, c:"jp", t:[1,1,2,1,4,1,1,1,2,1], d:{ko:"시원한 쯔유에 적셔 먹는 면", en:"Buckwheat noodles with dipping sauce."} },
+        { n: {ko:"텐동", en:"Tendong"}, c:"jp", t:[3,2,5,1,1,5,1,5,3,5], d:{ko:"바삭한 튀김이 올라간 덮밥", en:"Tempura rice bowl."} },
+
+        { n: {ko:"스테이크", en:"Steak"}, c:"us", t:[3,1,4,1,1,4,5,2,2,5], d:{ko:"육즙 가득한 소고기 구이", en:"Juicy grilled beef steak."} },
+        { n: {ko:"토마토 파스타", en:"Tomato Pasta"}, c:"us", t:[3,2,3,2,2,2,3,1,2,4], d:{ko:"상큼한 토마토 소스 스파게티", en:"Pasta with tomato sauce."} },
+        { n: {ko:"피자", en:"Pizza"}, c:"us", t:[3,2,5,1,1,5,5,1,2,5], d:{ko:"치즈가 듬뿍 들어간 파티 음식", en:"Cheesy oven-baked flatbread."} },
+        { n: {ko:"햄버거", en:"Hamburger"}, c:"us", t:[2,3,4,1,1,4,2,1,2,4], d:{ko:"패티와 채소의 완벽한 밸런스", en:"Sandwich with a ground meat patty."} },
+        { n: {ko:"크림 파스타", en:"Carbonara"}, c:"us", t:[3,2,4,1,2,4,3,1,2,4], d:{ko:"고소하고 부드러운 크림 소스", en:"Creamy pasta with bacon and egg."} },
+        { n: {ko:"샐러드", en:"Salad"}, c:"us", t:[1,1,2,1,1,1,1,3,2,2], d:{ko:"가볍고 신선한 건강식", en:"Fresh vegetables and dressing."} },
+
+        { n: {ko:"쌀국수", en:"Pho"}, c:"asia", t:[5,2,3,2,5,2,2,1,4,5], d:{ko:"깊은 육수와 아삭한 숙주", en:"Vietnamese rice noodle soup."} },
+        { n: {ko:"팟타이", en:"Pad Thai"}, c:"asia", t:[3,2,3,2,1,4,3,1,4,5], d:{ko:"새콤달콤한 태국식 볶음면", en:"Thai stir-fried rice noodles."} },
+        { n: {ko:"타코", en:"Tacos"}, c:"mx", t:[2,2,3,3,1,3,3,1,5,4], d:{ko:"또띠아에 싸 먹는 멕시코의 맛", en:"Tortillas filled with meat and veggies."} },
+        { n: {ko:"브리또", en:"Burrito"}, c:"mx", t:[2,2,5,2,1,5,1,5,5,4], d:{ko:"밥과 고기로 속을 채운 롤", en:"Flour tortilla wrapped with fillings."} },
+        { n: {ko:"나시고랭", en:"Nasi Goreng"}, c:"asia", t:[3,2,4,3,1,4,2,5,4,5], d:{ko:"인도네시아 스타일 볶음밥", en:"Indonesian fried rice."} },
+        { n: {ko:"분짜", en:"Bun Cha"}, c:"asia", t:[2,1,3,1,2,2,3,1,4,3], d:{ko:"새콤한 소스에 찍어먹는 베트남 요리", en:"Grilled pork and noodles with dipping sauce."} },
+        { n: {ko:"똠양꿍", en:"Tom Yum Goong"}, c:"asia", t:[4,4,3,4,5,3,3,2,5,5], d:{ko:"매콤 새콤한 태국식 스프", en:"Spicy and sour Thai shrimp soup."} }
+    ];
+
+    // --- Logic ---
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        document.getElementById('langScreen').style.display = 'none';
+        document.getElementById('startScreen').classList.add('active');
+        updateText();
+    }
+
+    function updateText() {
+        document.getElementById('startTitle').innerText = uiText.startTitle[currentLang];
+        document.getElementById('startDesc').innerHTML = uiText.startDesc[currentLang];
+        document.getElementById('startBtn').innerText = uiText.startBtn[currentLang];
+        document.getElementById('resultTitle').innerText = uiText.resultTitle[currentLang];
+        document.getElementById('clickHint').innerText = uiText.clickHint[currentLang];
+        document.getElementById('retryBtn').innerText = uiText.retryBtn[currentLang];
+        document.getElementById('btnRecipeText').innerText = uiText.btnRecipe[currentLang];
+        document.getElementById('btnMapText').innerText = uiText.btnMap[currentLang];
+        
+        document.getElementById('labelLow').innerText = uiText.labels.low[currentLang];
+        document.getElementById('labelHigh').innerText = uiText.labels.high[currentLang];
+    }
+
+    function startSurvey() {
+        document.getElementById('startScreen').classList.remove('active');
+        document.getElementById('questionScreen').classList.add('active');
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const qData = questions[currentQuestionIndex];
+        document.getElementById('currentQNum').innerText = currentQuestionIndex + 1;
+        document.getElementById('questionText').innerText = qData.q[currentLang];
+        document.getElementById('labelLow').innerText = qData.low[currentLang];
+        document.getElementById('labelHigh').innerText = qData.high[currentLang];
+        
+        const progress = ((currentQuestionIndex) / questions.length) * 100;
+        document.getElementById('progressBar').style.width = `${progress}%`;
+    }
+
+    function selectOption(value) {
+        userAnswers.push(value);
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        } else {
+            document.getElementById('progressBar').style.width = '100%';
+            showResult();
+        }
+    }
+
+    function getReason(food, answers) {
+        const reasons = {
+            spicy: { ko: "화끈한 매운맛이 필요한 날!", en: "Perfect for a spicy craving!" },
+            mild: { ko: "자극 없이 편안한 맛.", en: "Mild and comforting flavor." },
+            soup: { ko: "뜨끈한 국물이 최고죠.", en: "Hot soup is the best choice." },
+            greasy: { ko: "기름진 음식으로 에너지 충전!", en: "Recharge with rich flavors!" },
+            exotic: { ko: "새로운 이국적인 맛의 발견.", en: "Explore exotic tastes." },
+            familiar: { ko: "익숙해서 더 맛있는 그 맛.", en: "Familiar and delicious." },
+            cold: { ko: "시원하게 즐기는 별미.", en: "Cool and refreshing." },
+            match: { ko: "당신의 취향을 저격할 메뉴!", en: "Perfect match for your taste!" }
+        };
+
+        if (food.t[3] >= 4 && answers[3] >= 4) return reasons.spicy[currentLang];
+        if (food.t[3] <= 2 && answers[3] <= 2) return reasons.mild[currentLang];
+        if (food.t[4] >= 4 && answers[4] >= 4) return reasons.soup[currentLang];
+        if (food.t[5] >= 4 && answers[5] >= 4) return reasons.greasy[currentLang];
+        if (food.t[8] >= 4 && answers[8] >= 4) return reasons.exotic[currentLang];
+        if (food.t[0] <= 2 && answers[0] <= 2) return reasons.cold[currentLang];
+        return reasons.match[currentLang];
+    }
+
+    function showResult() {
+        document.getElementById('questionScreen').classList.remove('active');
+        document.getElementById('resultScreen').classList.add('active');
+
+        const ranked = foodData.map(food => {
+            let diff = 0;
+            food.t.forEach((score, i) => diff += Math.abs(score - userAnswers[i]));
+            return { ...food, score: diff };
+        }).sort((a, b) => a.score - b.score);
+
+        const top5 = ranked.slice(0, 5);
+        const listContainer = document.getElementById('resultList');
+        listContainer.innerHTML = "";
+
+        top5.forEach((food) => {
+            const cat = categories[food.c];
+            const reason = getReason(food, userAnswers);
+            const fname = food.n[currentLang];
+            const fdesc = food.d[currentLang];
+            
+            const query = encodeURIComponent(food.n['en'] + " food dish"); 
+            const imgUrl = `https://tse2.mm.bing.net/th?q=${query}&w=300&h=300&c=7&rs=1&p=0`;
+
+            // element 생성 후 이벤트 리스너 추가 (클로저 문제 해결)
+            const card = document.createElement('div');
+            card.className = 'food-card';
+            card.onclick = () => openModal(food);
+            
+            card.innerHTML = `
+                <img src="${imgUrl}" alt="${fname}" class="food-img" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                <div class="food-info">
+                    <div>
+                        <span class="cuisine-tag ${cat.class}">${cat[currentLang]}</span>
+                        <span class="food-name">${fname}</span>
+                    </div>
+                    <div class="food-reason">💡 ${reason}</div>
+                    <div class="food-desc">${fdesc}</div>
+                </div>
+            `;
+            listContainer.appendChild(card);
+        });
+    }
+
+    // --- Modal Logic ---
+
+    function openModal(food) {
+        selectedFoodItem = food;
+        const modal = document.getElementById('actionModal');
+        const modalTitle = document.getElementById('modalFoodName');
+        const modalDesc = document.getElementById('modalDesc');
+
+        modalTitle.innerText = food.n[currentLang];
+        modalDesc.innerText = food.d[currentLang];
+        
+        modal.style.display = 'flex'; // Use flex to center
+    }
+
+    function closeModal() {
+        document.getElementById('actionModal').style.display = 'none';
+    }
+
+    // Close modal if clicked outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('actionModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function goRecipe() {
+        if (!selectedFoodItem) return;
+        // Search on YouTube (Video recipes are best)
+        const query = encodeURIComponent(selectedFoodItem.n[currentLang] + (currentLang === 'ko' ? " 레시피" : " recipe"));
+        window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
+    }
+
+    function goMap() {
+        if (!selectedFoodItem) return;
+        // Search on Google Maps
+        // If Korean, add '맛집' (tasty place), if English, add 'restaurant'
+        const suffix = currentLang === 'ko' ? " 맛집" : " restaurant";
+        const query = encodeURIComponent(selectedFoodItem.n[currentLang] + suffix);
+        
+        // This URL format triggers a search near the user's current location
+        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+    }
+
+</script>
+
 </body>
 </html>
