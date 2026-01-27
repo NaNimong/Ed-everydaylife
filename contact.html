@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Edmonton Vision</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Contact Us</h1>
+        <p>We'd love to hear from you. Send us your inquiries!</p>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="forum.html">Community Forum</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="#">About</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section id="contact-form-section">
+            <h2>Partnership Inquiries</h2>
+            <p>If you're interested in partnering with us or have any business inquiries, please fill out the form below. For general questions, you can use this form as well.</p>
+
+            <form action="https://formspree.io/f/mdagdrne" method="POST" class="contact-form">
+
+                <label for="name">Your Name:</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="email">Your Email:</label>
+                <input type="email" id="email" name="_replyto" required>
+
+                <label for="message">Your Message:</label>
+                <textarea id="message" name="message" rows="8" required></textarea>
+
+                <button type="submit" class="cta-button">Send Message</button>
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 Vision for Edmonton. All rights reserved.</p>
+    </footer>
+    <script src="main.js"></script>
+</body>
+</html>
