@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edmonton Community Forum</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Edmonton Community Forum</h1>
+        <p>Discuss the future of our city, share ideas, and connect with your community.</p>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="forum.html">Community Forum</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section id="forum-posts">
+            <h2>Discussions</h2>
+            <div class="forum-header">
+                <h3>Latest Topics</h3>
+                <button class="cta-button">Start New Topic</button>
+            </div>
+            <div class="topic-list">
+                <div class="topic-item">
+                    <h4><a href="#">Improving Public Transportation in Edmonton</a></h4>
+                    <p>Started by: John Doe | Last Reply: 2 hours ago</p>
+                </div>
+                <div class="topic-item">
+                    <h4><a href="#">Sustainable Urban Planning for 2030</a></h4>
+                    <p>Started by: Jane Smith | Last Reply: yesterday</p>
+                </div>
+                <div class="topic-item">
+                    <h4><a href="#">The Role of Technology in Edmonton's Future</a></h4>
+                    <p>Started by: Tech Enthusiast | Last Reply: 3 days ago</p>
+                </div>
+                <div class="topic-item">
+                    <h4><a href="#">Community Gardens and Local Food Initiatives</a></h4>
+                    <p>Started by: Green Thumb | Last Reply: 1 week ago</p>
+                </div>
+            </div>
+        </section>
+        <section id="new-topic">
+            <h2>Start a New Discussion</h2>
+            <form>
+                <label for="topic-title">Topic Title:</label>
+                <input type="text" id="topic-title" name="topic-title" required>
+
+                <label for="topic-content">Your Message:</label>
+                <textarea id="topic-content" name="topic-content" rows="10" required></textarea>
+
+                <button type="submit" class="cta-button">Post Topic</button>
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 Vision for Edmonton. All rights reserved.</p>
+    </footer>
+    <script src="main.js"></script>
+</body>
+</html>
